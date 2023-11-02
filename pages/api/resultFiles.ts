@@ -33,7 +33,9 @@ export default async function handler(
 
     const { pineconeIndexName, selectedNamespace, sortBy } = req.body;
 
-    const filePath_to_download = process.cwd() + '/result/' + pineconeIndexName + '/' + selectedNamespace;
+    const filePath_to_download = process.cwd() + '/public/result/' + pineconeIndexName + '/' + selectedNamespace;
+
+    console.log("download path>>>", filePath_to_download);
 
     fs.readdir(filePath_to_download,async (error, resultFiles) => {
         if (error) {

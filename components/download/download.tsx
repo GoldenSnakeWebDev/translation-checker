@@ -49,6 +49,7 @@ export const DownLoad_Modal = (props: { pineconeIndexName: React.SetStateAction<
     }
     useEffect(() => {
         fetchData('time');
+        console.log("modal>>>");
     }, [])
 
     useEffect (() => {

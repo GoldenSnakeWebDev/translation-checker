@@ -480,7 +480,7 @@ export default async function handler(
     
             if (true) {
   
-              const resultPath_temp = process.cwd() + `/result`;
+              const resultPath_temp = process.cwd() + `/public/result`;
 
               fs.mkdirSync(resultPath_temp, {recursive:true});
 
