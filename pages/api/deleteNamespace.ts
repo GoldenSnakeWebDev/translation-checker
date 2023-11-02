@@ -2,6 +2,7 @@ import { initPinecone } from '@/utils/pinecone-client';
 import { NextApiRequest, NextApiResponse } from 'next';
 import process from 'process';
 import fs from 'fs';
+import mysql, {Pool, PoolConnection} from "mysql";
 
 export default async function handler(
   req: NextApiRequest,
@@ -35,14 +36,37 @@ export default async function handler(
 
   try {
     const index = pinecone.Index(targetIndex);
-    await index._delete({
-      deleteRequest: {
-        namespace,
-        deleteAll: true,
-      },
+
+    const pool: Pool = mysql.createPool({
+      host: "localhost",
+      user: "root",
+      password: "",
+      database: "chatbot_namespaces"
     });
 
-    res.status(200).json({ message: 'Namespace deleted successfully.' });
+    pool.getConnection((error: Error, connection: PoolConnection) => {
+      if (error) {
+        console.log("error occoured", error);
+        return;
+      }
+      const query = "DELETE FROM namespaces where namespace = ?";
+      connection.query(query, namespace, (_error: Error | null, results:any[], fields: any) => {
+
+        if (_error) {
+          console.log("error occoured>>>", _error);
+          return;
+        }
+        
+        res.status(200).json({ message: 'Namespace deleted successfully.' });
+      })
+    })
+    // await index._delete({
+    //   deleteRequest: {
+    //     namespace,
+    //     deleteAll: true,
+    //   },
+    // });
+
   } catch (error) {
     console.log('error', error);
     res.status(500).json({ error: 'Failed to delete namespace.' });

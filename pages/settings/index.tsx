@@ -54,6 +54,8 @@ export default function Settings() {
 
   const fetchNamespaces = async (openAIapiKey: string, pineconeApiKey: string, pineconeEnvironment: string, pineconeIndexName: string) => {
     try {
+
+      console.log("okay?");
       const response = await fetch(`/api/getNamespaces`, {
         headers: {
           'X-Api-Key': pineconeApiKey,
@@ -62,6 +64,8 @@ export default function Settings() {
         },
       });
       const data = await response.json();
+
+      console.log("namesapces <<<<>>>>", data);
 
       if (response.ok) {
         handleSubmitKeys();
@@ -136,7 +140,6 @@ export default function Settings() {
     setPineconeApiKey(pineconeApiKey);
     setPineconeEnvironment(pineconeEnvironment);
     setPineconeIndexName(pineconeIndexName);
-
     if(openAIapiKey && pineconeApiKey && pineconeEnvironment && pineconeIndexName) {
       fetchNamespaces(openAIapiKey, pineconeApiKey, pineconeEnvironment, pineconeIndexName);
     }

@@ -8,11 +8,14 @@ import { initPinecone } from '@/utils/pinecone-client';
 import process from 'process';
 import { LocalStorage } from "node-localstorage";
 import path from 'path';
+import mysql, {Pool, PoolConnection} from "mysql";
+
+// import pool from "./db";
+
 global.localStorage = new LocalStorage('./docs');
 
 // const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
 const filePath =  path.join(process.cwd(), 'tmp');;
-
 
 export default async function handler(
   req: NextApiRequest,
@@ -107,14 +110,53 @@ export default async function handler(
   
           const docs = await textSplitter.splitDocuments(filecontent);
 
-          
           fs.writeFileSync(currentPath + '/' + file, JSON.stringify(docs));
           
           console.log('docs okay?');
           try {
+
+            const pool: Pool = mysql.createPool({
+              host: "localhost",
+              user: "root",
+              password: "",
+              database: "chatbot_namespaces"
+            });
+
+            pool.getConnection((error: Error, connection: PoolConnection) => {
+              if (error) {
+                console.log("error occoured", error);
+                return;
+              }
+              const query_check = "SELECT COUNT(*) FROM namespaces WHERE namespace = ?";
+
+              connection.query(query_check, namespaceName, (_error: Error | null, results:any[], fields: any) => {
+                if (_error) {
+                  console.log("error occoured>>>", _error);
+                  return;
+                }
+
+                console.log("result>>>", results);
+                if (results[0]['COUNT(*)'] === 0) {
+
+                  const query = "INSERT INTO namespaces (namespace) VALUES (?)";
+    
+                  connection.query(query, namespaceName, (_error: Error | null, results:any[], fields: any) => {
+    
+                    if (_error) {
+                      console.log("error occoured>>>", _error);
+                      return;
+                    }
+                    console.log(fields);
+                    console.log(results);
+                  })
+                }
+
+              })
+            })
+            // await pool.query(query, [namespaceName]);
             await PineconeStore.fromDocuments(docs, embeddings, {
               pineconeIndex: index,
-              namespace: namespaceName as string,
+              // namespace: namespaceName as string,
               textKey: 'text',
             });
           }
@@ -126,6 +168,7 @@ export default async function handler(
                 console.log('here?');
                 return res.status(500).json({ error: `${(error as { message?: string }).message}. Please check Openai Api key.` });
               } else {
+                console.log("errror>>>:", error);
                 res.status(500).json({ error: (error as { message?: string }).message + ". Please check files again." });
               }
               
