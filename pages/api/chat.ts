@@ -118,9 +118,9 @@ function savaDataToPDF(data:Json, filename:string) {
 
     let rows: any[][] = [];
     data.forEach((node:any) => {
-      // headers.map((key) => {
-      //   rows.push(node[key])
-      // })
+      headers.map((key) => {
+        rows.push(node[key])
+      })
 
       console.log(keys.map(key => node[key]))
       rows.push(keys.map(key => node[key]));
@@ -128,13 +128,13 @@ function savaDataToPDF(data:Json, filename:string) {
     
     });
 
-    // doc.autoTable({
-    //   styles: {
-    //     font:'customFont'
-    //   },
-    //   head:headers,
-    //   body:rows
-    // })
+    doc.autoTable({
+      styles: {
+        font:'customFont'
+      },
+      head:headers,
+      body:rows
+    })
 
     doc.save(filename)
 
@@ -320,11 +320,10 @@ export default async function handler(
     });
     const prompt = PromptTemplate.fromTemplate(
       `{context}
-      -----------------
-      
+      -----------------------------------------------------
+      -----------------------------------------------------
+      -----------------------------------------------------
       {question}
-      
-
       `
     );
 

@@ -95,24 +95,34 @@ export default async function handler(
           });
   
         const columnData = results.data.map((row: any) => {
-          let tempResult = [];
+          let tempResult:any [] = [];
 
           console.log('length>>>', row.length);
           for (let i = 1 ; i < row.length; i ++) {
 
             if (row.length === 1) {
-              tempResult.push(row[i]);
+              // tempResult.push(row[i]);
+              tempResult = [...tempResult, row[i].split('.')];
             } else {
 
-              tempResult.push(row[0] + ', ' + row[i]);
+              // tempResult.push(row[0] + ', ' + row[i]);
+              row[0].split('.').map((index:any, cell:any) => {
+                const temp_row = row[i].split('.');
+                const temp = cell + '->' + temp_row[index];
+                tempResult.push(temp);
+              })
+              // tempResult = [...tempResult, row[i].split('.')];
+
             }
           }
-          if (row.length >= 1) {
 
-            return tempResult;
-          } else {
-            return tempResult;
-          }
+          return tempResult;
+          // if (row.length >= 1) {
+
+          //   return tempResult;
+          // } else {
+          //   return tempResult;
+          // }
         })
   
         data[`${uploadedFile.originalFilename.replace(ext, '.txt')}`] = columnData;
@@ -129,16 +139,24 @@ export default async function handler(
         const columnName = Object.keys(jsonData[0] as object)[0];
       
         const columnData = jsonData.map((row:any) => {
-          let tempResult = [];
+          let tempResult:any[] = [];
 
           // console.log('length>>>', row.length);
           for (let i = 1 ; i < row.length; i ++) {
 
             if (row.length === 1) {
-              tempResult.push(row[0]);
+              // tempResult.push(row[i]);
+              tempResult = [...tempResult, row[i].split('.')];
             } else {
 
-              tempResult.push(row[0] + ', ' + row[i]);
+              // tempResult.push(row[0] + ', ' + row[i]);
+              row[0].split('. ').map((index:any, cell:any) => {
+                const temp_row = row[i].split('.');
+                const temp = cell + '->' + temp_row[index];
+                tempResult.push(temp);
+              })
+              // tempResult = [...tempResult, row[i].split('.')];
+
             }
           }
             return tempResult;
@@ -167,8 +185,18 @@ export default async function handler(
             filecontent = await fs.promises.readFile(uploadedFile.path, 'utf-8');
             break;
         }
+
+        const splitByNewLine = filecontent.split('\n');
+        const tempResult:any[] = [];
   
-        data[`${uploadedFile.originalFilename.replace(ext, '.txt')}`] = filecontent.split('\n');
+        for (var i = 0; i < splitByNewLine.length; i++) {
+          var splitByDot = splitByNewLine[i].split('.');
+          tempResult.push(...splitByDot);
+        }
+
+        // data[`${uploadedFile.originalFilename.replace(ext, '.txt')}`] = filecontent.split('\n');
+        data[`${uploadedFile.originalFilename.replace(ext, '.txt')}`] = tempResult;
+
         index_of_file++;
       }
 

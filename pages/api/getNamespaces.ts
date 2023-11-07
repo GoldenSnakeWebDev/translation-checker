@@ -65,6 +65,7 @@ const getNamespaces = async (req: NextApiRequest, res: NextApiResponse) => {
         }
         console.log("namesapces>>>", namespace);
         
+        connection.release();
         res.status(200).json(namespace);
         // namespace = results;
       })
