@@ -290,7 +290,7 @@ export default function Home() {
               ...prevConversation.messages,
               {
                 type: 'apiMessage',
-                message: ' You requested too many times. You can resume later. \n but ' + data.text,
+                message: 'You requested too many times. You can resume later or with new OpenAI API key now. \n but ' + data.text,
                 sourceDocs: data.sourceDocuments
                   ? data.sourceDocuments.map(
                       (doc: any) =>
@@ -310,7 +310,7 @@ export default function Home() {
           updateConversation(selectedChatId, updatedConversation);
           return updatedConversation;
         });
-      } if (data.isExpired) {
+      } else if (data.isExpired) {
         setConversation((prevConversation) => {
           const updatedConversation = {
             ...prevConversation,
@@ -318,7 +318,7 @@ export default function Home() {
               ...prevConversation.messages,
               {
                 type: 'apiMessage',
-                message: 'OpenAI API key has expired.',
+                message: 'OpenAI API key has expired. you can resume with new OpenAI API key now. \n but ' + data.text,
                 sourceDocs: data.sourceDocuments
                   ? data.sourceDocuments.map(
                       (doc: any) =>

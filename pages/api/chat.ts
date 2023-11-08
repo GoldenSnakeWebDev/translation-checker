@@ -312,7 +312,7 @@ export default async function handler(
   try {
 
     const model = new OpenAI({
-      temperature: 0.9, // increase temepreature to get more creative answers
+      temperature: 1.0, // increase temepreature to get more creative answers
       modelName: 'gpt-3.5-turbo', //change this to gpt-4 if you have access
       // maxTokens:2048,
       // modelName: "text-davinci-003",
@@ -321,8 +321,7 @@ export default async function handler(
     const prompt = PromptTemplate.fromTemplate(
       `{context}
       -----------------------------------------------------
-      -----------------------------------------------------
-      -----------------------------------------------------
+      
       {question}
       `
     );
@@ -330,22 +329,22 @@ export default async function handler(
     let result:string ="";
     let response_Source_doc = "";
 
-    const index = pinecone.Index(targetIndex as string);
+    // const index = pinecone.Index(targetIndex as string);
 
-    const vectorStore = await PineconeStore.fromExistingIndex(
-      new OpenAIEmbeddings({
-        openAIApiKey: openAIapiKey as string,
-      }),
-      {
-        pineconeIndex: index,
-        textKey: 'text',
-        namespace: selectedNamespace,
-      },
-    );
+    // const vectorStore = await PineconeStore.fromExistingIndex(
+    //   new OpenAIEmbeddings({
+    //     openAIApiKey: openAIapiKey as string,
+    //   }),
+    //   {
+    //     pineconeIndex: index,
+    //     textKey: 'text',
+    //     namespace: selectedNamespace,
+    //   },
+    // );
 
     let currentPath = process.cwd() + '/namespace/' + selectedNamespace;
 
-    let progress_count = 0;
+    // let progress_count = 0;
 
     let isBreak = false;
     let isExpired = false;
@@ -355,7 +354,7 @@ export default async function handler(
     let saved_index = 0;
     let saved_file_name = '';
 
-    let isAbort = false;
+    // let isAbort = false;
 
     const signal = controller.signal;
 
@@ -416,11 +415,13 @@ export default async function handler(
             const docs = fs.readFileSync(currentPath + '/' + file).toString();
             const myDocs = JSON.parse(docs);
 
-            console.log("docs content>>>>.", myDocs);
+            // console.log("docs content>>>>.", myDocs);
     
             let responseResult: any[] = saved_content;
     
             const chain = new LLMChain({llm:model, prompt:prompt});
+
+            console.log("length>>>>", myDocs.length);
     
             for (let i = saved_index; i < myDocs.length; i++) {
     
@@ -441,7 +442,9 @@ export default async function handler(
           
                 // console.log('response>>>>', response.text);
           
+                console.log("result>>>>>", response.text);
                 const jsonData = JSON.parse(response.text);
+
     
                 responseResult = [...responseResult, ...jsonData]
     
@@ -465,13 +468,27 @@ export default async function handler(
                 }
   
                 if ((error as { message?: string }).message === 'Request failed with status code 401') {
+                  let contentOfResume = [
+                    {
+                      savedFile:currentPath + '/' + file,
+                      index:i,
+                      content:responseResult
+                    }
+                  ]
+      
+                  fs.writeFileSync(currentPath + '/resume.txt', JSON.stringify(contentOfResume));
+
                   isExpired = true;
+
+                  break;
                 }
   
                 if ((error as { name?: string }).name === "AbortError") {
-                  isAbort = true;
+                  // isAbort = true;
                   break;
                 }
+
+                console.log("error occured>>>>", error);
                 // console.log(error.state);
               }
               

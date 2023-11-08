@@ -10,6 +10,12 @@ import fs from 'fs';
 import pdf from 'pdf-parse';
 import { File } from 'buffer';
 // import { result } from 'lodash';
+import WordExtractor from 'word-extractor'
+
+import mammoth from 'mammoth';
+import Docxtemplater from 'docxtemplater';
+import HtmlToText from 'html-to-text';
+import { Content } from 'next/font/google';
 
 interface UploadedFile {
   slice(arg0: number, arg1: number): unknown;
@@ -30,13 +36,21 @@ export const config = {
   },
 };
 
-const readDocxFile = async (filePath:string) => {
-
+const readDocxFile = async (filePath: string) => {
   try {
-    const directoryLoader = new DocxLoader(filePath);
-    const filecontent = await directoryLoader.load();
+    const extractor = new WordExtractor();
+    const extracted = extractor.extract(filePath);
 
-    return filecontent;
+    return new Promise<string>((resolve, reject) => {
+      extracted.then((doc: any) => {
+        fs.writeFileSync('file.txt', doc.getBody(), 'utf-8');
+        const text = doc.getBody().toString('utf-8');
+        resolve(text);
+      })
+      .catch((error: any) => {
+        reject(error);
+      });
+    });
   } catch (error) {
     console.log("error>>>", error);
     return null;
@@ -167,7 +181,7 @@ export default async function handler(
         index_of_file++;
       } else {
 
-        let loader, filecontent;
+        let loader, filecontent: string| null | undefined;
         switch (ext) {
           case '.pdf':
             const fileBytes = fs.readFileSync(uploadedFile.path);
@@ -178,21 +192,31 @@ export default async function handler(
             filecontent = await fs.promises.readFile(uploadedFile.path, 'utf-8');
             break;
           case '.docx':
-            const temp:any = await readDocxFile(uploadedFile.path);
-            filecontent = temp[0]['pageContent'];
+            // const temp:any = await readDocxFile(uploadedFile.path);
+            // filecontent = temp[0]['pageContent'];
+            filecontent = await readDocxFile(uploadedFile.path);
+            // filecontent = temp[0]['pageContent'];
             break;
           default:
             filecontent = await fs.promises.readFile(uploadedFile.path, 'utf-8');
             break;
         }
 
-        const splitByNewLine = filecontent.split('\n');
-        const tempResult:any[] = [];
-  
-        for (var i = 0; i < splitByNewLine.length; i++) {
-          var splitByDot = splitByNewLine[i].split('.');
-          tempResult.push(...splitByDot);
+        // console.log("file content>>>", filecontent);
+
+        if (ext === ".docx") {
+
+          filecontent = filecontent?.replace(/\tMT/g, "\n");
+          filecontent = filecontent?.replace(/\t\t/g, "\n");
+          filecontent = filecontent?.replace(/\n\n/g, "\n");
         }
+        const tempResult = filecontent?.split('\n') ?? [];
+        // const tempResult:any[] = [];
+  
+        // for (var i = 0; i < splitByNewLine.length; i++) {
+        //   var splitByDot = splitByNewLine[i].split('.');
+        //   tempResult.push(...splitByDot);
+        // }
 
         // data[`${uploadedFile.originalFilename.replace(ext, '.txt')}`] = filecontent.split('\n');
         data[`${uploadedFile.originalFilename.replace(ext, '.txt')}`] = tempResult;
@@ -315,6 +339,7 @@ export default async function handler(
             console.log('name of field>>>', name_of_field);
             
             context[`${name_of_field}`] = context[`${name_of_field}`].replaceAll('\r', ' ');
+            context[`${name_of_field}`] = context[`${name_of_field}`].replaceAll('\n\n', '\n');
             fs.writeFileSync(path.join(projectTmpDir, name_of_field,), context[`${name_of_field}`]);
             uploadedFiles.push(path.join(projectTmpDir, name_of_field));
             console.log('CSV to txt');
