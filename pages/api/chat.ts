@@ -42,20 +42,25 @@ function runMiddleware(
 
 function saveDataToXlsx(data:Json, filename:string) {
 
-  try {
-    const worksheet = xlsx.utils.json_to_sheet(data);
+  if (data.length>0) {
 
-    const workbook = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-
-    const xlsxFile = xlsx.write(workbook, { bookType: 'xlsx', type: 'buffer' });
-
-    fs.writeFileSync(filename, xlsxFile);
-    return 'saved the result to XLSX file!';
-  }
-  catch (error) {
-    console.log('error>>', error);
-    return error;
+    try {
+      const worksheet = xlsx.utils.json_to_sheet(data);
+  
+      const workbook = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  
+      const xlsxFile = xlsx.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+  
+      fs.writeFileSync(filename, xlsxFile);
+      return 'the result was saved to XLSX file!';
+    }
+    catch (error) {
+      console.log('error>>', error);
+      return error;
+    }
+  } else {
+    return 'the result was saved to XLSX file!'
   }
 }
 
@@ -63,202 +68,229 @@ function savaDataToTXT(data:Json, filename:string) {
   let result = 'the result\n';
   
   // fs.writeFileSync(filename, "the result \n");
-  try {
-    const keys = Object.keys(data[0]);
-    data.forEach(((node:any) => {
-      console.log("keys>>>>>>>>",keys);
-      keys.map((key:string) => {
-        result += node[key] + ','
-      })
-      result += '\n';
+  if (data.length>0) {
 
-      // result += `${node['original source sentence']}, ${node['original translation']}, ${node['modified translation']}, ${node['reason of correction']}\n`;
-    }))
-
-    fs.writeFileSync(filename, result);
-
-      return 'saved the result to text file!';
-
-    // })
-  } catch (error) {
-    console.log('error>>', error);
-    return error;
-    
+    try {
+      const keys = Object.keys(data[0]);
+      data.forEach(((node:any) => {
+        console.log("keys>>>>>>>>",keys);
+        keys.map((key:string) => {
+          result += node[key] + ','
+        })
+        result += '\n';
+  
+        // result += `${node['original source sentence']}, ${node['original translation']}, ${node['modified translation']}, ${node['reason of correction']}\n`;
+      }))
+  
+      fs.writeFileSync(filename, result);
+  
+        return 'the result was saved to text file!';
+  
+      // })
+    } catch (error) {
+      console.log('error>>', error);
+      return error;
+      
+    }
+  } else {
+    return "the result was saved to text file!"
   }
 }
 
 function savaDataToPDF(data:Json, filename:string) {
-  try {
-    // const doc = new PDFDocument();
-    const doc = new jsPDF();
-    
-    const fontFilePath = process.cwd() + '/font/';
+  if (data.length>0) {
 
-    doc.addFont(fontFilePath + 'OpenSans-Regular.ttf', 'customFont', 'normal');
-
-    doc.setFont('customFont');
-
-    console.log('pass encoding!');
-
-    const pageWidth = doc.internal.pageSize.width;
-    // const textWidth = doc.getStringUnitWidth("the result") * doc.internal.getFontSize();
-    const textWidth = doc.getStringUnitWidth("the result");
-
-    const x = (pageWidth - textWidth) / 2;
-    const y = 20; // Adjust the y-coordinate as needed
-
-    doc.text("the result", x, y);
-
-    const keys = Object.keys(data[0]);
-
-    const headers = [keys];
-
-    let index = 0;
-    // Add each node data to the PDF
-
-    let rows: any[][] = [];
-    data.forEach((node:any) => {
-      headers.map((key) => {
-        rows.push(node[key])
+    try {
+      // const doc = new PDFDocument();
+      const doc = new jsPDF();
+      
+      const fontFilePath = process.cwd() + '/font/';
+  
+      doc.addFont(fontFilePath + 'OpenSans-Regular.ttf', 'customFont', 'normal');
+  
+      doc.setFont('customFont');
+  
+      console.log('pass encoding!');
+  
+      const pageWidth = doc.internal.pageSize.width;
+      // const textWidth = doc.getStringUnitWidth("the result") * doc.internal.getFontSize();
+      const textWidth = doc.getStringUnitWidth("the result");
+  
+      const x = (pageWidth - textWidth) / 2;
+      const y = 20; // Adjust the y-coordinate as needed
+  
+      doc.text("the result", x, y);
+  
+      const keys = Object.keys(data[0]);
+  
+      const headers = [keys];
+  
+      let index = 0;
+      // Add each node data to the PDF
+  
+      let rows: any[][] = [];
+      data.forEach((node:any) => {
+        headers.map((key) => {
+          rows.push(node[key])
+        })
+  
+        console.log(keys.map(key => node[key]))
+        rows.push(keys.map(key => node[key]));
+        // rows.push([node['original source sentence'], node['original translation'], node['modified translation'], node['reason of correction']])
+      
+      });
+  
+      doc.autoTable({
+        styles: {
+          font:'customFont'
+        },
+        head:headers,
+        body:rows
       })
-
-      console.log(keys.map(key => node[key]))
-      rows.push(keys.map(key => node[key]));
-      // rows.push([node['original source sentence'], node['original translation'], node['modified translation'], node['reason of correction']])
-    
-    });
-
-    doc.autoTable({
-      styles: {
-        font:'customFont'
-      },
-      head:headers,
-      body:rows
-    })
-
-    doc.save(filename)
-
-    return 'Saved the result to the PDF!';
-  } catch (error) {
-    console.log('error>>>>>>', error);
-    return error;
+  
+      doc.save(filename)
+  
+      return 'the result was saved to pdf file!';
+    } catch (error) {
+      console.log('error>>>>>>', error);
+      return error;
+    }
+  } else {
+    return "the result was saved to pdf file!";
   }
 }
 
 function saveDataToDocx(data: Json, filename: string) {
-  try {
+  if (data.length>0) {
 
-    const font = {
-      name: 'Calibri',
-      size: 20,
-    };
-
-    const keys = Object.keys(data[0]);
-
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [
-            // Existing content ...
-            new Paragraph({
-              children: [
-                new TextRun("The Result"),
-              ],
-              alignment: AlignmentType.CENTER,
-              
-            }),
-            // Create a table
-            new Table({
-              rows: [
-                // Table header row
-                new TableRow({
-                  children: keys.map((key) => (
-                    new TableCell({
-                      children: [
-                        new Paragraph(key),
-                      ],
-                    })
-                  )),
-                }),
-                // Table data rows
-                ...data.map((row:any) => new TableRow({
-                  children: Object.values(row).map((value) => new TableCell({children:[new Paragraph({text: value as string})]})),
-                })),
-              ],
-            }),
-          ],
-        },
-      ],
-    });
-
-    Packer.toBuffer(doc).then((buffer) => {
-      fs.writeFileSync(filename, buffer);
-    });
-
-      return 'Saved the result to the DOCX!';
-  } catch (error) {
-      console.log("Error:", error);
-      return error;
+    try {
+  
+      const font = {
+        name: 'Calibri',
+        size: 20,
+      };
+  
+      const keys = Object.keys(data[0]);
+  
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: [
+              // Existing content ...
+              new Paragraph({
+                children: [
+                  new TextRun("The Result"),
+                ],
+                alignment: AlignmentType.CENTER,
+                
+              }),
+              // Create a table
+              new Table({
+                rows: [
+                  // Table header row
+                  new TableRow({
+                    children: keys.map((key) => (
+                      new TableCell({
+                        children: [
+                          new Paragraph(key),
+                        ],
+                      })
+                    )),
+                  }),
+                  // Table data rows
+                  ...data.map((row:any) => new TableRow({
+                    children: Object.values(row).map((value) => new TableCell({children:[new Paragraph({text: value as string})]})),
+                  })),
+                ],
+              }),
+            ],
+          },
+        ],
+      });
+  
+      Packer.toBuffer(doc).then((buffer) => {
+        fs.writeFileSync(filename, buffer);
+      });
+  
+        return 'the result was saved to docx file!';
+    } catch (error) {
+        console.log("Error:", error);
+        return error;
+    }
+  } else {
+    return "the result was saved to docx file!";
   }
 }
 function saveDataToHTML(data:Json, filename: string) {
-  try {
-    // Create the result header
-    const header = "<h1>the result</h1>\n";
-  
-    // Create the table headers
-    const keys = Object.keys(data[0]);
-    let tableHeaders = "<tr>"
-    keys.map((key) => {
-      tableHeaders += `<td>${key}</td>`
-    })
-    tableHeaders += '\n';
+  if (data.length > 0) {
 
-    // const tableHeaders = "<tr><th>original source sentences</th><th>original translation</th><th>modified translation</th><th>reason of correction</th></tr>\n";
-  
-    // Create the rows for the table
-    let rows = '';
-    data.forEach((node:any) => {
-      rows += "<tr>"
+    try {
+      // Create the result header
+      const header = "<h1>the result</h1>\n";
+    
+      // Create the table headers
+      const keys = Object.keys(data[0]);
+      let tableHeaders = "<tr>"
       keys.map((key) => {
-        rows += `<td>${node[key]}</td>`;
+        tableHeaders += `<td>${key}</td>`
       })
-      rows += '</tr>\n';
-      // rows += `<tr><td>${node['original source sentence']}</td><td>${node['original translation']}</td><td>${node['modified translation']}</td><td>${node['reason of correction']}</td></tr>\n`;
-    });
+      tableHeaders += '\n';
   
-    // Combine the header, table headers, and rows into an HTML table
-    const html = `<html><body>${header}<table>${tableHeaders}${rows}</table></body></html>`;
+      // const tableHeaders = "<tr><th>original source sentences</th><th>original translation</th><th>modified translation</th><th>reason of correction</th></tr>\n";
+    
+      // Create the rows for the table
+      let rows = '';
+      data.forEach((node:any) => {
+        rows += "<tr>"
+        keys.map((key) => {
+          rows += `<td>${node[key]}</td>`;
+        })
+        rows += '</tr>\n';
+        // rows += `<tr><td>${node['original source sentence']}</td><td>${node['original translation']}</td><td>${node['modified translation']}</td><td>${node['reason of correction']}</td></tr>\n`;
+      });
+    
+      // Combine the header, table headers, and rows into an HTML table
+      const html = `<html><body>${header}<table>${tableHeaders}${rows}</table></body></html>`;
+    
+      console.log('html >>>>', html);
+      
+      // Uncomment the following lines if you want to download the file in the browser
+      // const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      // saveAs(blob, 'result.html');
+      
+      // Comment out this line if you want to download the file in the browser
+      fs.writeFileSync(filename, html);
   
-    console.log('html >>>>', html);
-    
-    // Uncomment the following lines if you want to download the file in the browser
-    // const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    // saveAs(blob, 'result.html');
-    
-    // Comment out this line if you want to download the file in the browser
-    fs.writeFileSync(filename, html);
-
-    fs.rename(filename, filename.replace('.txt', '.html'), (error) => {
-      if (error) {
-        console.log('Renaming file is Error:', error)
-      } else {
-        console.log('Renamed the file!');
-      }
-    })
-    return 'Saved the result to an HTML file!';
-  } catch (error) {
-    console.log('Error:', error);
-    return error;
+      fs.rename(filename, filename.replace('.txt', '.html'), (error) => {
+        if (error) {
+          console.log('Renaming file is Error:', error)
+        } else {
+          console.log('Renamed the file!');
+        }
+      })
+      return 'the result was saved to html file!';
+    } catch (error) {
+      console.log('Error:', error);
+      return error;
+    }
+  } else {
+    return "the result was saved to html file!";
   }
 }
 function saveDataToJson (data:Json, filename: string) {
-  try {
-    fs.writeFileSync(filename, JSON.stringify(data));
-    console.log('Data saved to file:', filename);
-  } catch (error) {
-    console.error('Error writing JSON string to file', error);
+
+  if (data.length> 0) {
+
+    try {
+      fs.writeFileSync(filename, JSON.stringify(data));
+      console.log('Data saved to file:', filename);
+      return "the result was saved to JSON file!";
+    } catch (error) {
+      console.error('Error writing JSON string to file', error);
+    }
+  } else {
+    return "the result was saved to JSON file!";
   }
 }
 export default async function handler(
@@ -319,10 +351,14 @@ export default async function handler(
       openAIApiKey: openAIapiKey as string,
     });
     const prompt = PromptTemplate.fromTemplate(
-      `{context}
+      `this is my text:
+      {context}
+      my text end.
       -----------------------------------------------------
-      
+      query:
       {question}
+
+      you often include the query in result, include the only content of text in result
       `
     );
 
@@ -513,6 +549,7 @@ export default async function handler(
               // if (!fs.existsSync(resultPath)) {
               //   fs.mkdirSync(resultPath);
               // }
+              
               
               switch (filetype) {
                 case 'xlsx':
