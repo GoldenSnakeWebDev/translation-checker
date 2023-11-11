@@ -358,7 +358,9 @@ export default async function handler(
       query:
       {question}
 
-      you often include the query in result, include the only content of text in result
+      Run a query on my text.
+      Responses often include queries.
+      Please include only text content in your response.
       `
     );
 
