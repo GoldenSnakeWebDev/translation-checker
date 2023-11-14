@@ -160,6 +160,8 @@ function savaDataToPDF(data:Json, filename:string) {
   }
 }
 
+
+
 function saveDataToDocx(data: Json, filename: string) {
   if (data.length>0) {
 
@@ -293,6 +295,25 @@ function saveDataToJson (data:Json, filename: string) {
     return "the result was saved to JSON file!";
   }
 }
+
+function check_Response(data:Json, question:string) {
+  
+  let result:any [] = [];
+
+
+  // result = data.map((item:any) => {
+  for (let index = 0; index < data.length; index++) {
+    const element = data[index];
+
+    const keys = Object.keys(element);
+
+    if (question.indexOf(element[keys[0]])<0 && element[keys[0]] !== "this is my text:" && element[keys[0]] !== "-----------------------------------------------------" && element[keys[0]].indexOf(question)<0) {
+      result.push(element);
+    }
+  }
+
+  return result;
+}
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -351,16 +372,14 @@ export default async function handler(
       openAIApiKey: openAIapiKey as string,
     });
     const prompt = PromptTemplate.fromTemplate(
-      `this is my text:
-      {context}
-      my text end.
+      `
+      this is my text:
+      [{context}]
+      
       -----------------------------------------------------
-      query:
+      For the above text run:
       {question}
-
-      Run a query on my text.
-      Responses often include queries.
-      Please include only text content in your response.
+      If my text is blank, reply blank.
       `
     );
 
@@ -483,8 +502,11 @@ export default async function handler(
                 console.log("result>>>>>", response.text);
                 const jsonData = JSON.parse(response.text);
 
+                const checked_response = check_Response(jsonData, sanitizedQuestion);
+
+                console.log("checked respons>>>>",checked_response);
     
-                responseResult = [...responseResult, ...jsonData]
+                responseResult = [...responseResult, ...checked_response]
     
                 console.log('error is here?');
               }
