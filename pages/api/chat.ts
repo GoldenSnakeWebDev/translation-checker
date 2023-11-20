@@ -300,14 +300,13 @@ function check_Response(data:Json, question:string) {
   
   let result:any [] = [];
 
-
   // result = data.map((item:any) => {
   for (let index = 0; index < data.length; index++) {
     const element = data[index];
 
     const keys = Object.keys(element);
 
-    if (question.indexOf(element[keys[0]])<0 && element[keys[0]] !== "this is my text:" && element[keys[0]] !== "-----------------------------------------------------" && element[keys[0]].indexOf(question)<0) {
+    if (element[keys[0]].toString().indexOf("Provide the results in JSON format as follows:")<0 && element[keys[0]].toString() !== "-----------------------------------------------------" && element[keys[0]].toString().indexOf("Hh8yxy1alTuq29CO0_dc5:")<0) {
       result.push(element);
     }
   }
@@ -373,13 +372,10 @@ export default async function handler(
     });
     const prompt = PromptTemplate.fromTemplate(
       `
-      this is my text:
       [{context}]
       
       -----------------------------------------------------
-      For the above text run:
       {question}
-      If my text is blank, reply blank.
       `
     );
 
